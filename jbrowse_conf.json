@@ -1,0 +1,12 @@
+{
+  "datasets": {
+    "Humanmine-9606": {
+      "url": "?data=https://www.humanmine.org/humanmine/service/jbrowse/config/9606",
+      "name": "HumanMine (Homo sapiens)"
+    },
+    "FlyMine-7227": {
+      "url": "?data=https://www.flymine.org/flymine/service/jbrowse/config/7227",
+      "name": "FlyMine (Drosophila melanogaster)"
+    }
+  }
+}

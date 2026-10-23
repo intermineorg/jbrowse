@@ -1,0 +1,19 @@
+# Copy to docker-compose.override.yml (compose loads it automatically) to let
+# each mine's nginx container reach JBrowse as http://jbrowse:80 and serve it
+# under https://<mine host>/jbrowse/ without opening any new port.
+# One entry per mine; the network name is <compose project>_frontend, where the
+# project is the mine's directory name. Check with: docker network ls
+version: "3.4"
+
+services:
+  jbrowse:
+    networks:
+      - default
+      - humanmine_frontend
+      - flymine_frontend
+
+networks:
+  humanmine_frontend:
+    external: true
+  flymine_frontend:
+    external: true

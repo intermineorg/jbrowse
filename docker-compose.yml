@@ -1,0 +1,20 @@
+# One shared JBrowse 1.x for any number of InterMines. See README.md.
+#
+#   docker-compose up -d --build
+#
+# Publish it either behind a TLS front end as https://jbrowse.<domain>/
+# (InterMine's built-in default is https://jbrowse.intermine.org/) or under
+# each mine's own hostname as https://<mine host>/jbrowse/ (see
+# docker-compose.override.yml.example).
+version: "3.4"
+
+services:
+  jbrowse:
+    container_name: jbrowse
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      # Host port; override in .env (copy .env.example).
+      - ${JBROWSE_HTTP_PORT:-14880}:80
