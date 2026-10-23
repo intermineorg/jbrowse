@@ -156,6 +156,50 @@ data, so CORS is not involved, but it must be set up per mine.
      `jbrowse.install.url = https://www.humanmine.org/jbrowse/` in the mine
      properties and run `./gradlew cargoRedeployRemote`.
 
+### Undoing route B
+
+Reverse the three steps in the opposite order, per mine. Do not do step 1
+until `https://jbrowse.intermine.org/` (or whatever the tool will point at)
+works, or every gene report page goes blank again.
+
+1. Point the tool back at the shared host and restart BlueGenes:
+
+   ```sh
+   cd ~/intermine/docker/humanmine
+   f=$(find data/tools -path '*bluegenes-jbrowse-tool/config.json')
+   sed -i 's#"https://www.humanmine.org/jbrowse/?data="#"https://jbrowse.intermine.org/?data="#' "$f"
+   grep jbrowseUrl "$f"
+   docker-compose restart bluegenes
+   ```
+
+2. Remove the `/jbrowse/` block from the mine's nginx and rebuild. Edit
+   the block out rather than restoring an old backup, so that later edits
+   to the same file (such as the `/favicon.ico` rule) survive:
+
+   ```sh
+   cp nginx/nginx.conf nginx/nginx.conf.bak-undo-jbrowse
+   awk '/^[[:space:]]*location \/jbrowse\/ \{/ {skip=1} skip && /^[[:space:]]*location = \/jbrowse \{/ {last=1} !skip {print} skip && last && /^[[:space:]]*\}/ {skip=0; last=0}' nginx/nginx.conf.bak-undo-jbrowse > nginx/nginx.conf
+   diff nginx/nginx.conf.bak-undo-jbrowse nginx/nginx.conf      # exactly the two jbrowse locations removed
+   grep -c jbrowse nginx/nginx.conf                               # 0
+   docker-compose up -d --build nginx
+   curl -sI https://www.humanmine.org/jbrowse/ | head -1          # now 200 from BlueGenes' catch-all, not JBrowse
+   ```
+
+3. Detach the container from the mine's network. In the JBrowse directory,
+   delete the mine's two lines from `docker-compose.override.yml` (or the
+   whole file if no mine remains) and apply:
+
+   ```sh
+   cd ~/intermine/docker/jbrowse
+   rm docker-compose.override.yml           # if no mine is left in it
+   docker-compose up -d
+   docker inspect jbrowse -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'   # jbrowse_default only
+   ```
+
+Repeat for FlyMine with `flymine` and `www.flymine.org`. The `/jbrowse/`
+location in `docker_template`'s nginx template can stay: with no container
+on the network it returns 502 for that path and affects nothing else.
+
 ## Check from a browser
 
 Open the URL a HumanMine gene report page embeds, substituting your JBrowse
