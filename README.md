@@ -103,15 +103,27 @@ container can proxy to this one, so JBrowse is reached as
 `https://www.humanmine.org/jbrowse/`. This is same-origin with the mine's
 data, so CORS is not involved, but it must be set up per mine.
 
-1. Join the container to each mine's frontend network. The network is named
-   `<compose project>_frontend`, where the project is the mine's directory
-   name (`docker network ls --filter name=frontend`).
+1. Join the container to each mine's frontend network, so the mine's nginx
+   can reach it by the name `jbrowse`. `docker-compose.override.yml.example`
+   is the template: it lists HumanMine and FlyMine, and each mine appears
+   twice, once under `services.jbrowse.networks` and once under the
+   top-level `networks:` as `external: true`. Replace those entries with
+   your own mines' networks. A mine deployed from `docker_template` has a
+   network called `<directory name>_frontend`; list them with
+   `docker network ls --filter name=frontend`.
 
    ```sh
-   cp docker-compose.override.yml.example docker-compose.override.yml   # edit the network names
+   cp docker-compose.override.yml.example docker-compose.override.yml
+   $EDITOR docker-compose.override.yml      # one mine per entry, in both places
    docker-compose up -d
    docker inspect jbrowse -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
    ```
+
+   The inspect line must list every mine's network plus `jbrowse_default`.
+   A network name that does not exist stops the container from starting
+   with `network <name> declared as external, but could not be found`; fix
+   the name and run `docker-compose up -d` again. On dx (HumanMine and
+   FlyMine) the example can be copied unchanged.
 
 2. Route `/jbrowse/` in the mine's nginx. Mines deployed from
    `docker_template` already have this in `nginx/nginx.conf.template`. For

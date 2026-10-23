@@ -1,8 +1,15 @@
-# Copy to docker-compose.override.yml (compose loads it automatically) to let
-# each mine's nginx container reach JBrowse as http://jbrowse:80 and serve it
-# under https://<mine host>/jbrowse/ without opening any new port.
-# One entry per mine; the network name is <compose project>_frontend, where the
-# project is the mine's directory name. Check with: docker network ls
+# Template for docker-compose.override.yml (compose loads that file
+# automatically; this .example is ignored).  It joins the jbrowse container to
+# each mine's frontend network so the mine's nginx can reach it as
+# http://jbrowse:80 and serve it under https://<mine host>/jbrowse/ without
+# opening any new port.  See README.md, "Route B".
+#
+# The two entries below are HumanMine and FlyMine; replace them with your own
+# mines.  Each mine appears twice: under services.jbrowse.networks and under
+# the top-level networks: block as external.  For a mine deployed from
+# intermineorg/docker_template the network is <directory name>_frontend;
+# list the candidates with:  docker network ls --filter name=frontend
+# A name that does not exist stops the container from starting.
 version: "3.4"
 
 services:
